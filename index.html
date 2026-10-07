@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAJ FLYSCREEN - Quotation System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Local offline PDF engine -->
+  <script src="html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <!-- TOP NAVIGATION HEADER (Screen only) -->
+  <header class="app-header no-print">
+    <div class="header-left">
+      <div class="app-brand">
+        <img src="assets/logo_company.png" alt="Taj Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-title">TAJ FLYSCREEN</span>
+          <span class="brand-subtitle">Quotation Creator</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="view-tabs">
+        <button id="tabEditorBtn" class="tab-btn active" onclick="switchView('editor')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          Editor
+        </button>
+        <button id="tabPreviewBtn" class="tab-btn" onclick="switchView('preview')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          Print Preview
+        </button>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="openSavedQuotesModal()" title="View Saved Quotes">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        <span class="btn-text">Saved Quotes</span>
+        <span id="savedCountBadge" class="badge">1</span>
+      </button>
+      <button class="btn btn-secondary" onclick="createNewQuote()" title="New Quote">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span class="btn-text">New</span>
+      </button>
+      <button class="btn btn-success" onclick="sharePdfViaWhatsApp()" title="Send Quotation PDF to WhatsApp">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.599 2.679-.702c.97.589 1.761.854 2.782.854 3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.838-5.769-5.838zm3.376 8.21c-.149.418-.761.766-1.074.809-.312.043-.701.077-2.228-.553-1.826-.754-3.003-2.613-3.093-2.735-.091-.122-.738-.981-.738-1.87 0-.889.467-1.326.633-1.508.167-.183.364-.229.486-.229.122 0 .243.002.348.007.112.006.262-.043.411.314.152.366.518 1.264.563 1.356.046.091.076.198.016.319-.061.122-.091.198-.182.304-.092.107-.193.239-.276.321-.092.091-.188.19-.081.373.107.183.473.782 1.015 1.265.698.622 1.288.815 1.471.906.183.092.29.076.396-.046.107-.122.457-.532.579-.715.122-.183.244-.152.411-.091.167.061 1.066.503 1.249.595.183.091.305.137.35.213.045.076.045.441-.104.859z"/></svg>
+        <span class="btn-text">WhatsApp PDF</span>
+      </button>
+      <button class="btn btn-secondary" onclick="downloadPdfDirectly()" title="Download PDF File">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span class="btn-text">Download PDF</span>
+      </button>
+      <button class="btn btn-primary" onclick="printQuotationDoc()" title="Print / Save PDF">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        <span class="btn-text">Print</span>
+      </button>
+      <button class="btn btn-secondary" onclick="openCalculatorModal()" title="Flyscreen & Quick Calculator">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+        <span class="btn-text">Calculator</span>
+      </button>
+      <button class="btn btn-icon" onclick="openSettingsModal()" title="Settings & Products">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="app-main">
+    <!-- ==================== LEFT: INTERACTIVE EDITOR ==================== -->
+    <div id="editorView" class="editor-container no-print">
+      <!-- Quick Info Bar -->
+      <div class="editor-header-bar">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="saveStatusText">Auto-saved locally</span>
+        </div>
+        <div class="quick-helpers">
+          <button class="helper-btn" onclick="loadSampleTemplate()">Load Sample Data</button>
+          <button class="helper-btn" onclick="saveCurrentQuote(true)">Save Snapshot</button>
+        </div>
+      </div>
+
+      <!-- SECTION 1: CUSTOMER DETAILS -->
+      <section class="editor-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Customer Information
+          </div>
+          <div class="card-actions">
+            <select id="quickCustomerSelect" onchange="applySavedCustomer(this.value)" class="form-select-sm">
+              <option value="">Quick Select Saved Client...</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body form-grid">
+          <div class="form-group full-width">
+            <label for="custName">Customer / Company Name <span class="required">*</span></label>
+            <input type="text" id="custName" class="form-control" placeholder="e.g. DIAMOND STEP ALUMINIUM AND GLASS" oninput="updateField('customerName', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="custPhone">Phone No</label>
+            <input type="text" id="custPhone" class="form-control" placeholder="e.g. 0521549462" oninput="updateField('customerPhone', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="custVatin">VATIN / TRN</label>
+            <input type="text" id="custVatin" class="form-control" placeholder="e.g. 100XXXXXXXXX" oninput="updateField('customerVatin', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="custContactPerson">Contact Person</label>
+            <input type="text" id="custContactPerson" class="form-control" placeholder="e.g. MR. SAJI" oninput="updateField('contactPerson', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="custContactNo">Contact No</label>
+            <input type="text" id="custContactNo" class="form-control" placeholder="e.g. +971521549462" oninput="updateField('contactNo', this.value)">
+          </div>
+          <div class="form-group full-width">
+            <label for="custAddress">Customer Address</label>
+            <textarea id="custAddress" class="form-control" rows="2" placeholder="e.g. SAJAA INDUSTRIAL AREA&#10;SHARJAH" oninput="updateField('customerAddress', this.value)"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: QUOTE DETAILS -->
+      <section class="editor-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            Quote Reference Details
+          </div>
+        </div>
+        <div class="card-body form-grid">
+          <div class="form-group">
+            <label for="quoteNo">Quote No <span class="required">*</span></label>
+            <input type="text" id="quoteNo" class="form-control font-bold" placeholder="668" oninput="updateField('quoteNo', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="quoteDate">Date <span class="required">*</span></label>
+            <input type="text" id="quoteDate" class="form-control" placeholder="07-Oct-2026" oninput="updateField('quoteDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="lpoNo">L P O No</label>
+            <input type="text" id="lpoNo" class="form-control" placeholder="Optional LPO Number" oninput="updateField('lpoNo', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="lpoDate">L P O Date</label>
+            <input type="text" id="lpoDate" class="form-control" placeholder="Optional LPO Date" oninput="updateField('lpoDate', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="salesman">Salesman</label>
+            <input type="text" id="salesman" class="form-control" placeholder="Sales Representative Name" oninput="updateField('salesman', this.value)">
+          </div>
+          <div class="form-group">
+            <label for="paymentTerms">Payment Terms</label>
+            <input type="text" id="paymentTerms" class="form-control" placeholder="e.g. 50% Advance, Balance on Delivery" oninput="updateField('paymentTerms', this.value)">
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: LINE ITEMS -->
+      <section class="editor-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            Items & Measurements
+          </div>
+          <div class="card-actions header-controls">
+            <label class="toggle-control" title="Toggle automatic calculation vs fully manual values">
+              <input type="checkbox" id="autoCalcToggle" checked onchange="toggleAutoCalculation(this.checked)">
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">Auto-Calc Tot SqM & Amount</span>
+            </label>
+            <button class="btn btn-sm btn-primary" onclick="addNewItemRow()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Item
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Quick presets buttons for mobile ease -->
+          <div class="preset-chips-container" id="quickProductsChipsContainer">
+            <div class="preset-chips-header">
+              <span class="preset-label">Quick Add Products:</span>
+              <button class="btn-link-settings" onclick="openSettingsModal('products')">+ Configure Products</button>
+            </div>
+            <div class="chips-flex" id="quickProductsChipsList">
+              <!-- Dynamically populated from settings -->
+            </div>
+          </div>
+
+          <!-- Items Table -->
+          <div class="items-table-wrapper">
+            <table class="items-editor-table" id="itemsEditorTable">
+              <thead>
+                <tr>
+                  <th style="width: 32px;">#</th>
+                  <th style="width: 80px;">Code</th>
+                  <th style="min-width: 190px;">Description</th>
+                  <th style="width: 140px;">Notes</th>
+                  <th style="width: 90px;">Width<br><small>(mm)</small></th>
+                  <th style="width: 90px;">Height<br><small>(mm)</small></th>
+                  <th style="width: 65px;">Qty</th>
+                  <th style="width: 85px;">Unit</th>
+                  <th style="width: 95px;">Tot SqM</th>
+                  <th style="width: 95px;">Rate<br><small>(AED)</small></th>
+                  <th style="width: 105px;">Amount<br><small>(AED)</small></th>
+                  <th style="width: 42px;"></th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody">
+                <!-- Dynamically rendered via app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="add-row-bar">
+            <button class="btn btn-outline btn-block" onclick="addNewItemRow()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add New Line Item
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: FINANCIAL SUMMARY & DISCOUNTS -->
+      <section class="editor-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            Totals, Discounts & VAT
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="summary-editor-grid">
+            <div class="summary-card">
+              <label>Total Quantity</label>
+              <div class="summary-value" id="dispTotalQty">0</div>
+            </div>
+            <div class="summary-card">
+              <label>Total Sq. Meters</label>
+              <div class="summary-value" id="dispTotalSqm">0.00</div>
+            </div>
+            <div class="summary-card">
+              <label>Subtotal (Amount)</label>
+              <div class="summary-value" id="dispSubtotal">0.00 AED</div>
+            </div>
+            <div class="summary-card highlight-card">
+              <label>Final Net Amount</label>
+              <div class="summary-value text-accent" id="dispNetAmount">0.00 AED</div>
+            </div>
+          </div>
+
+          <div class="form-grid mt-4">
+            <div class="form-group">
+              <label for="discount1">Discount (AED)</label>
+              <input type="number" step="0.01" id="discount1" class="form-control" placeholder="0.00" oninput="updateField('discount1', parseFloat(this.value) || 0)">
+            </div>
+            <div class="form-group">
+              <label for="discount2">Discount 2 (AED)</label>
+              <input type="number" step="0.01" id="discount2" class="form-control" placeholder="0.00" oninput="updateField('discount2', parseFloat(this.value) || 0)">
+            </div>
+            <div class="form-group">
+              <label for="vatRate">VAT Rate (%)</label>
+              <select id="vatRate" class="form-control" onchange="updateField('vatRate', parseFloat(this.value) || 0)">
+                <option value="5" selected>5% (Standard UAE)</option>
+                <option value="0">0% (Zero Rated / Exempt)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="roundOff">Round Off Adjustment (AED)</label>
+              <div class="input-with-action">
+                <input type="number" step="0.01" id="roundOff" class="form-control" placeholder="-1.85" oninput="updateField('roundOff', parseFloat(this.value) || 0)">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="autoRoundToInteger()" title="Round Net Amount to whole number">Auto</button>
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="amountInWords">Amount In Words (UAE Dirhams)</label>
+              <div class="input-with-action">
+                <input type="text" id="amountInWords" class="form-control" placeholder="Dirham Two Thousand..." oninput="updateField('amountInWords', this.value)">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="regenerateAmountInWords()" title="Recompute words from net amount">Auto Words</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: REMARKS & BANK DETAILS -->
+      <section class="editor-card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Remarks & Notes
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <textarea id="quoteRemarks" class="form-control" rows="3" placeholder="Enter special instructions, warranty terms, or site remarks..." oninput="updateField('remarks', this.value)"></textarea>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================== RIGHT / PRINT: A4 QUOTATION TEMPLATE ==================== -->
+    <div id="previewView" class="preview-container">
+      <div class="preview-toolbar no-print">
+        <div class="toolbar-title">
+          <span>A4 Document Preview</span>
+          <span class="preview-badge">Matches Original PDF</span>
+        </div>
+        <div class="toolbar-btns">
+          <button class="btn btn-sm btn-secondary" onclick="switchView('editor')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path></svg>
+            Back to Editor
+          </button>
+          <button class="btn btn-sm btn-success" onclick="sharePdfViaWhatsApp()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.599 2.679-.702c.97.589 1.761.854 2.782.854 3.179 0 5.767-2.587 5.768-5.766 0-3.18-2.587-5.838-5.769-5.838zm3.376 8.21c-.149.418-.761.766-1.074.809-.312.043-.701.077-2.228-.553-1.826-.754-3.003-2.613-3.093-2.735-.091-.122-.738-.981-.738-1.87 0-.889.467-1.326.633-1.508.167-.183.364-.229.486-.229.122 0 .243.002.348.007.112.006.262-.043.411.314.152.366.518 1.264.563 1.356.046.091.076.198.016.319-.061.122-.091.198-.182.304-.092.107-.193.239-.276.321-.092.091-.188.19-.081.373.107.183.473.782 1.015 1.265.698.622 1.288.815 1.471.906.183.092.29.076.396-.046.107-.122.457-.532.579-.715.122-.183.244-.152.411-.091.167.061 1.066.503 1.249.595.183.091.305.137.35.213.045.076.045.441-.104.859z"/></svg>
+            Send WhatsApp PDF
+          </button>
+          <button class="btn btn-sm btn-primary" onclick="printQuotationDoc()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print Quotation
+          </button>
+        </div>
+      </div>
+
+      <!-- THE PRINTABLE A4 PAGE SHEET -->
+      <div class="a4-sheet" id="quotationSheet">
+        <!-- HEADER BLOCK -->
+        <header class="doc-header">
+          <div class="doc-header-left">
+            <img src="assets/logo_company.png" alt="TAJ AL SHEMOUKH INDUSTRIES L.L.C" class="doc-logo-left">
+            <div class="doc-company-details">
+              <div id="docAddressLine">Al Sajaa Industrial, Sharjah</div>
+              <div>Tel : <span id="docTel">+971 505106430</span></div>
+              <div>Email : <span id="docEmail">sales.ae@tajglb.com</span></div>
+              <div><span id="docWebsite">www.tajflyscreen.com</span></div>
+            </div>
+          </div>
+          <div class="doc-header-right">
+            <img src="assets/logo_flyscreen.png" alt="TAJ FLYSCREEN" class="doc-logo-right">
+            <div class="doc-company-legal">
+              <div>License Number : <span id="docLicenseNo">924650</span></div>
+              <div>Tax No : <span id="docTaxNo">105090748200003</span></div>
+            </div>
+          </div>
+        </header>
+
+        <!-- TOP FULL DIVIDER LINE -->
+        <div class="doc-divider"></div>
+
+        <!-- CENTERED QUOTATION TITLE (MATCHES ATTACHED IMAGE) -->
+        <div class="doc-title-container">
+          <div class="doc-title-text">- Quotation - تقدير -</div>
+        </div>
+
+        <!-- BOTTOM FULL DIVIDER LINE -->
+        <div class="doc-divider"></div>
+
+        <!-- CUSTOMER & QUOTE INFO BLOCK -->
+        <section class="doc-info-grid">
+          <!-- Left: Customer Info -->
+          <div class="doc-info-left">
+            <div class="doc-info-row">
+              <span class="info-label">Customer Name</span>
+              <span class="info-colon">:</span>
+              <span class="info-val font-bold" id="docCustName">DIAMOND STEP ALUMINIUM AND GLASS</span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">VATIN</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docCustVatin"></span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">Phone No</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docCustPhone">0521549462</span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">Contact Person</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docCustContactPerson">MR. SAJI</span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">Contact No</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docCustContactNo">+971521549462</span>
+            </div>
+            <div class="doc-info-row align-start">
+              <span class="info-label">Address</span>
+              <span class="info-colon">:</span>
+              <span class="info-val pre-line" id="docCustAddress">SAJAA INDUSTRIAL AREA&#10;SHARJAH</span>
+            </div>
+          </div>
+
+          <!-- Right: Quote Meta -->
+          <div class="doc-info-right">
+            <div class="doc-info-row">
+              <span class="info-label">Quote No</span>
+              <span class="info-colon">:</span>
+              <span class="info-val font-bold" id="docQuoteNo">668</span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">Date</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docQuoteDate">07-Oct-2026</span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">L P O No</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docLpoNo"></span>
+            </div>
+            <div class="doc-info-row">
+              <span class="info-label">L P O Date</span>
+              <span class="info-colon">:</span>
+              <span class="info-val" id="docLpoDate"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ITEMS TABLE -->
+        <div class="doc-table-wrapper">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th class="col-no">No</th>
+                <th class="col-code">Code</th>
+                <th class="col-desc">Description</th>
+                <th class="col-notes">Notes</th>
+                <th class="col-num">Width</th>
+                <th class="col-num">Height</th>
+                <th class="col-num">Qty</th>
+                <th class="col-unit">Unit</th>
+                <th class="col-num">Tot SqM</th>
+                <th class="col-num">Rate</th>
+                <th class="col-num">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="docItemsBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TOTALS & SUMMARY SECTION -->
+        <div class="doc-summary-section">
+          <!-- Left Totals (Total Qty, Total SQM, Total RM) -->
+          <div class="doc-summary-left">
+            <div class="doc-sum-row">
+              <span class="sum-lbl font-bold">Total Qty</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val font-bold" id="docTotalQty">16</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl font-bold">Total SQM</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val font-bold" id="docTotalSqm">18.52</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl font-bold">Total RM</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docTotalRm">0.00</span>
+            </div>
+          </div>
+
+          <!-- Right Totals (Amounts, VAT, Round off, Net) -->
+          <div class="doc-summary-right">
+            <div class="doc-sum-row">
+              <span class="sum-lbl font-bold">Total Amount</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docTotalAmount">2592.24</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl">Discount</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docDiscount">0.00</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl">Discount 2</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docDiscount2">0.00</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl font-bold">Total Before VAT</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val font-bold" id="docTotalBeforeVat">2592.24</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl">VAT Amount</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docVatAmount">129.61</span>
+            </div>
+            <div class="doc-sum-row">
+              <span class="sum-lbl">Round Off</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val" id="docRoundOff">-1.85</span>
+            </div>
+            <div class="doc-sum-row net-row">
+              <span class="sum-lbl font-bold">Net Amount</span>
+              <span class="sum-col">:</span>
+              <span class="sum-val font-bold" id="docNetAmount">2720.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AMOUNT IN WORDS -->
+        <div class="doc-words-section">
+          <div class="doc-words-text" id="docAmountWords">Dirham Two Thousand Seven Hundred Twenty Only</div>
+        </div>
+
+        <!-- REMARKS -->
+        <div class="doc-remarks-section">
+          <div class="remarks-title font-bold">Remarks</div>
+          <div class="remarks-content" id="docRemarks"></div>
+        </div>
+
+        <!-- BANK ACCOUNT DETAILS -->
+        <div class="doc-bank-section">
+          <div class="bank-title font-bold">BANK ACCOUNT DETAILS</div>
+          <div class="bank-details-grid">
+            <div class="bank-row">
+              <span class="bank-lbl">Account Name</span>
+              <span class="bank-col">:</span>
+              <span class="bank-val font-bold" id="docBankAccName">Taj Al Shemoukh Industries LLC</span>
+            </div>
+            <div class="bank-row">
+              <span class="bank-lbl">A/c Number</span>
+              <span class="bank-col">:</span>
+              <span class="bank-val font-bold" id="docBankAccNo">3708504364201</span>
+            </div>
+            <div class="bank-row">
+              <span class="bank-lbl">IBAN Number</span>
+              <span class="bank-col">:</span>
+              <span class="bank-val font-bold" id="docBankIban">AE340340003708504364201</span>
+            </div>
+            <div class="bank-row">
+              <span class="bank-lbl">Bank Name</span>
+              <span class="bank-col">:</span>
+              <span class="bank-val" id="docBankName">Emirates Islamic, Qasimiyah Branch, Sharjah</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOOTER: PAYMENT TERMS, SALESMAN, SIGNATURE -->
+        <footer class="doc-footer">
+          <div class="doc-footer-row">
+            <div class="footer-col-left">
+              <div class="footer-field">
+                <span class="footer-lbl font-bold">Payment Terms</span>
+                <span class="footer-col">:</span>
+                <span class="footer-val" id="docPaymentTerms"></span>
+              </div>
+            </div>
+            <div class="footer-col-right">
+              <div class="footer-field">
+                <span class="footer-lbl font-bold">Salesman</span>
+                <span class="footer-col">:</span>
+                <span class="footer-val" id="docSalesman"></span>
+              </div>
+            </div>
+          </div>
+          <div class="doc-footer-row mt-6">
+            <div class="footer-col-right offset-right">
+              <div class="signature-block">
+                <span class="footer-lbl font-bold">Signature</span>
+                <span class="footer-col">:</span>
+                <span class="signature-line"></span>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <!-- SAVED QUOTES MODAL -->
+  <div id="savedQuotesModal" class="modal-overlay no-print" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Saved Quotations</h3>
+        <button class="modal-close-btn" onclick="closeSavedQuotesModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-actions-top">
+          <input type="text" id="quoteSearchInput" class="form-control" placeholder="Search by Quote No or Customer..." oninput="filterSavedQuotes(this.value)">
+          <button class="btn btn-sm btn-outline" onclick="exportQuotesBackup()">Export Backup (JSON)</button>
+          <label class="btn btn-sm btn-outline file-btn">
+            Import Backup
+            <input type="file" accept=".json" onchange="importQuotesBackup(event)" style="display: none;">
+          </label>
+        </div>
+        <div class="saved-list" id="savedQuotesList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL WITH PRODUCT MANAGEMENT -->
+  <div id="settingsModal" class="modal-overlay no-print" style="display: none;">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button id="tabSettingsCompany" class="modal-tab-btn active" onclick="switchSettingsTab('company')">Company & Bank Info</button>
+          <button id="tabSettingsProducts" class="modal-tab-btn" onclick="switchSettingsTab('products')">Quick-Add Products</button>
+        </div>
+        <button class="modal-close-btn" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <!-- Tab 1: Company & Bank -->
+      <div id="settingsCompanyTab" class="modal-body form-grid">
+        <div class="form-group full-width">
+          <label>Company Address</label>
+          <input type="text" id="setCompanyAddress" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Tel</label>
+          <input type="text" id="setTel" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="text" id="setEmail" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Website</label>
+          <input type="text" id="setWebsite" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>License Number</label>
+          <input type="text" id="setLicenseNo" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Tax Number (TRN)</label>
+          <input type="text" id="setTaxNo" class="form-control">
+        </div>
+        <div class="form-group full-width">
+          <h4 class="settings-subheading">Bank Account Info</h4>
+        </div>
+        <div class="form-group">
+          <label>Account Name</label>
+          <input type="text" id="setBankAccName" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>A/c Number</label>
+          <input type="text" id="setBankAccNo" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>IBAN Number</label>
+          <input type="text" id="setBankIban" class="form-control">
+        </div>
+        <div class="form-group">
+          <label>Bank & Branch Name</label>
+          <input type="text" id="setBankName" class="form-control">
+        </div>
+      </div>
+
+      <!-- Tab 2: Quick-Add Products Management -->
+      <div id="settingsProductsTab" class="modal-body" style="display: none;">
+        <div class="new-product-box">
+          <h4 class="settings-subheading" style="margin-top: 0;">Add New Quick Product</h4>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label>Product Description / Name <span class="required">*</span></label>
+              <input type="text" id="newProdDesc" class="form-control" placeholder="e.g. BARRIER FREE PLEATED FLYSCREEN GREY">
+            </div>
+            <div class="form-group">
+              <label>Default Notes</label>
+              <input type="text" id="newProdNotes" class="form-control" placeholder="e.g. BOTTOM TRACK LESS">
+            </div>
+            <div class="form-group">
+              <label>Default Rate (AED)</label>
+              <input type="number" step="0.01" id="newProdRate" class="form-control" placeholder="180.00">
+            </div>
+            <div class="form-group">
+              <label>Unit</label>
+              <select id="newProdUnit" class="form-control">
+                <option value="SQMTR">SQMTR</option>
+                <option value="PCS">PCS</option>
+                <option value="RM">RM</option>
+                <option value="SET">SET</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-primary btn-block" onclick="saveNewQuickProduct()">+ Add to Quick Presets</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="existing-products-box mt-4">
+          <h4 class="settings-subheading">Current Quick Add Presets</h4>
+          <div class="products-list" id="settingsProductsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">Close</button>
+        <button class="btn btn-primary" onclick="saveSettingsFromModal()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMART FLYSCREEN & ARITHMETIC CALCULATOR MODAL -->
+  <div id="calculatorModal" class="modal-overlay no-print" style="display: none;">
+    <div class="modal-card modal-lg calculator-modal-card">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button id="tabCalcArea" class="modal-tab-btn active" onclick="switchCalcTab('area')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
+            Flyscreen & Area Estimator
+          </button>
+          <button id="tabCalcStandard" class="modal-tab-btn" onclick="switchCalcTab('standard')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line></svg>
+            Standard Calculator
+          </button>
+          <button id="tabCalcDiscount" class="modal-tab-btn" onclick="switchCalcTab('discount')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
+            Discount & Margin
+          </button>
+        </div>
+        <button class="modal-close-btn" onclick="closeCalculatorModal()">&times;</button>
+      </div>
+
+      <!-- TAB 1: FLYSCREEN & AREA ESTIMATOR (CUSTOM FOR TAJ FLYSCREEN) -->
+      <div id="calcAreaTab" class="modal-body">
+        <div class="calc-grid-layout">
+          <div class="calc-inputs-pane">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label>Select Product Preset</label>
+                <select id="calcProdSelect" class="form-control" onchange="onCalcProductChange(this.value)">
+                  <!-- Dynamically populated from quick products -->
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Width (mm)</label>
+                <input type="number" id="calcWidthInput" class="form-control" placeholder="1000" value="1000" oninput="runAreaCalculator()">
+              </div>
+              <div class="form-group">
+                <label>Height (mm)</label>
+                <input type="number" id="calcHeightInput" class="form-control" placeholder="1200" value="1200" oninput="runAreaCalculator()">
+              </div>
+              <div class="form-group">
+                <label>Quantity (pcs)</label>
+                <input type="number" id="calcQtyInput" class="form-control" placeholder="1" value="1" min="1" oninput="runAreaCalculator()">
+              </div>
+              <div class="form-group">
+                <label>Rate (AED / SqM)</label>
+                <input type="number" step="0.01" id="calcRateInput" class="form-control" placeholder="140.00" value="140" oninput="runAreaCalculator()">
+              </div>
+              <div class="form-group full-width">
+                <label>Minimum Area Rule (UAE Standard)</label>
+                <select id="calcMinAreaSelect" class="form-control" onchange="runAreaCalculator()">
+                  <option value="0">None (Charge Exact SqM)</option>
+                  <option value="1.0" selected>1.00 SqM Minimum per piece</option>
+                  <option value="1.2">1.20 SqM Minimum per piece</option>
+                  <option value="1.5">1.50 SqM Minimum per piece</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="calc-results-pane">
+            <div class="calc-card">
+              <div class="calc-card-row">
+                <span class="calc-lbl">Exact Area / Piece:</span>
+                <span class="calc-val" id="resPieceSqm">1.20 SqM</span>
+              </div>
+              <div class="calc-card-row">
+                <span class="calc-lbl">Approx SqFt / Piece:</span>
+                <span class="calc-val text-muted" id="resPieceSqft">12.92 SqFt</span>
+              </div>
+              <div class="calc-card-row">
+                <span class="calc-lbl">Perimeter (RM) / Piece:</span>
+                <span class="calc-val text-muted" id="resPieceRm">4.40 RM</span>
+              </div>
+              <div class="calc-divider"></div>
+              <div class="calc-card-row">
+                <span class="calc-lbl font-bold">Total Billable Area:</span>
+                <span class="calc-val font-bold" id="resTotalBillSqm">1.20 SqM</span>
+              </div>
+              <div class="calc-card-row">
+                <span class="calc-lbl font-bold">Subtotal Amount:</span>
+                <span class="calc-val font-bold" id="resSubtotalAmt">168.00 AED</span>
+              </div>
+              <div class="calc-card-row">
+                <span class="calc-lbl">VAT (5%):</span>
+                <span class="calc-val" id="resVatAmt">8.40 AED</span>
+              </div>
+              <div class="calc-card-row total-highlight">
+                <span class="calc-lbl font-bold">Net Total with VAT:</span>
+                <span class="calc-val font-bold text-accent" id="resNetWithVat">176.40 AED</span>
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-primary btn-block mt-3" onclick="insertCalcItemToQuotation()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Insert Item into Quotation
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: STANDARD ARITHMETIC CALCULATOR -->
+      <div id="calcStandardTab" class="modal-body" style="display: none;">
+        <div class="pocket-calculator-container">
+          <div class="pocket-calc-display">
+            <div class="pocket-calc-history" id="pocketCalcHistory">&nbsp;</div>
+            <div class="pocket-calc-screen" id="pocketCalcScreen">0</div>
+          </div>
+          <div class="pocket-calc-keypad">
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('MC')">MC</button>
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('MR')">MR</button>
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('M+')">M+</button>
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('M-')">M-</button>
+            <button type="button" class="calc-btn btn-danger" onclick="pocketCalcAction('C')">C</button>
+
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('7')">7</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('8')">8</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('9')">9</button>
+            <button type="button" class="calc-btn btn-op" onclick="pocketCalcOp('/')">÷</button>
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('BACK')">⌫</button>
+
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('4')">4</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('5')">5</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('6')">6</button>
+            <button type="button" class="calc-btn btn-op" onclick="pocketCalcOp('*')">×</button>
+            <button type="button" class="calc-btn btn-op" onclick="pocketCalcAction('PERCENT')">%</button>
+
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('1')">1</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('2')">2</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('3')">3</button>
+            <button type="button" class="calc-btn btn-op" onclick="pocketCalcOp('-')">-</button>
+            <button type="button" class="calc-btn btn-func" onclick="pocketCalcAction('NEG')">±</button>
+
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('0')">0</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('.')">.</button>
+            <button type="button" class="calc-btn" onclick="pocketCalcNum('00')">00</button>
+            <button type="button" class="calc-btn btn-op" onclick="pocketCalcOp('+')">+</button>
+            <button type="button" class="calc-btn btn-equal" onclick="pocketCalcEquals()">=</button>
+          </div>
+          <div class="pocket-calc-actions-bar">
+            <button type="button" class="btn btn-sm btn-outline" onclick="pocketCalcCopy()">Copy Result</button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="pocketCalcPasteToDiscount()">Apply as Quotation Discount</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: DISCOUNT & MARGIN CALCULATOR -->
+      <div id="calcDiscountTab" class="modal-body" style="display: none;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Quotation Total (AED)</label>
+            <input type="number" step="0.01" id="discCalcBaseAmt" class="form-control" oninput="runDiscountCalc()">
+          </div>
+          <div class="form-group">
+            <label>Discount Percentage (%)</label>
+            <input type="number" step="0.1" id="discCalcPercent" class="form-control" placeholder="10" value="10" oninput="runDiscountCalc('percent')">
+          </div>
+          <div class="form-group full-width">
+            <label>Quick Preset Discounts:</label>
+            <div class="preset-chips-container" style="margin-bottom: 0;">
+              <div class="chips-flex">
+                <button type="button" class="preset-chip" onclick="applyQuickDiscountPercent(5)">5% Off</button>
+                <button type="button" class="preset-chip" onclick="applyQuickDiscountPercent(10)">10% Off</button>
+                <button type="button" class="preset-chip" onclick="applyQuickDiscountPercent(15)">15% Off</button>
+                <button type="button" class="preset-chip" onclick="applyQuickDiscountPercent(20)">20% Off</button>
+                <button type="button" class="preset-chip" onclick="applyQuickDiscountPercent(25)">25% Off</button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Discount Amount (AED)</label>
+            <input type="number" step="0.01" id="discCalcAmt" class="form-control" oninput="runDiscountCalc('amount')">
+          </div>
+          <div class="form-group">
+            <label>VAT 5% Included?</label>
+            <select id="discCalcVatSelect" class="form-control" onchange="runDiscountCalc()">
+              <option value="5">Yes (5% UAE VAT)</option>
+              <option value="0">No (0% VAT)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="calc-card mt-3">
+          <div class="calc-card-row">
+            <span class="calc-lbl">Original Amount:</span>
+            <span class="calc-val" id="resDiscOriginal">0.00 AED</span>
+          </div>
+          <div class="calc-card-row">
+            <span class="calc-lbl font-bold" style="color: var(--color-danger);">Discount Amount:</span>
+            <span class="calc-val font-bold" style="color: var(--color-danger);" id="resDiscSavings">- 0.00 AED</span>
+          </div>
+          <div class="calc-card-row">
+            <span class="calc-lbl">Total Before VAT:</span>
+            <span class="calc-val" id="resDiscBeforeVat">0.00 AED</span>
+          </div>
+          <div class="calc-card-row">
+            <span class="calc-lbl">VAT Amount (5%):</span>
+            <span class="calc-val" id="resDiscVat">0.00 AED</span>
+          </div>
+          <div class="calc-card-row total-highlight">
+            <span class="calc-lbl font-bold">Final Net Payable:</span>
+            <span class="calc-val font-bold text-accent" id="resDiscNet">0.00 AED</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block mt-3" onclick="applyCalculatedDiscountToQuote()">
+          Apply Discount to Current Quotation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING QUICK CALCULATOR BUTTON -->
+  <button id="floatingCalcBtn" class="floating-calc-btn no-print" onclick="openCalculatorModal()" title="Open Smart Calculator">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+  </button>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="toast-container no-print"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
